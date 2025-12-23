@@ -1,0 +1,7 @@
+{
+  "name": "TriEdge Coach Match",
+  "description": "A premium triathlon coaching platform that matches athletes with world-class coaches using AI-powered analysis.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
