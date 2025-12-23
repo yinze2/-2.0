@@ -1,11 +1,16 @@
-
 import { GoogleGenAI } from "@google/genai";
 import { UserProfile, Coach } from "../types";
 
+const getApiKey = () => {
+  try {
+    return (typeof process !== 'undefined' && process.env?.API_KEY) || "";
+  } catch (e) {
+    return "";
+  }
+};
+
 export async function getSimpleMatchAdvice(profile: UserProfile, coach: Coach) {
-  // 确保 API_KEY 存在，即使为空也不要引起程序中断
-  const apiKey = (typeof process !== 'undefined' && process.env?.API_KEY) || "";
-  const ai = new GoogleGenAI({ apiKey });
+  const ai = new GoogleGenAI({ apiKey: getApiKey() });
   
   const prompt = `你是一位专业的铁人三项主教练。
     学员${profile.name}的目标是"${profile.goal}"，目前最薄弱的环节是${profile.weakness}。
@@ -25,8 +30,7 @@ export async function getSimpleMatchAdvice(profile: UserProfile, coach: Coach) {
 }
 
 export async function chatWithHeadCoach(history: any[], message: string) {
-  const apiKey = (typeof process !== 'undefined' && process.env?.API_KEY) || "";
-  const ai = new GoogleGenAI({ apiKey });
+  const ai = new GoogleGenAI({ apiKey: getApiKey() });
   const contents = [
     ...history,
     { role: 'user', parts: [{ text: message }] }
