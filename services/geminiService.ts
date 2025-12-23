@@ -2,31 +2,29 @@
 import { GoogleGenAI } from "@google/genai";
 import { UserProfile, Coach } from "../types";
 
-// Always use const ai = new GoogleGenAI({apiKey: process.env.API_KEY});
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
 export async function getSimpleMatchAdvice(profile: UserProfile, coach: Coach) {
-  const prompt = `你是一位铁三教练。
-    学员${profile.name}的目标是${profile.goal}，弱项是${profile.weakness}。
-    你为他匹配了教练${coach.name}（擅长${coach.specialty.join('、')}）。
-    请用2-3句话说明为什么这个教练适合他，并给出一句鼓励。`;
+  // 每次调用时重新实例化以确保获取到最新的 process.env.API_KEY
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || "" });
+  
+  const prompt = `你是一位专业的铁人三项主教练。
+    学员${profile.name}的目标是"${profile.goal}"，目前最薄弱的环节是${profile.weakness}。
+    你为他匹配了教练${coach.name}（该教练擅长${coach.specialty.join('、')}）。
+    请用2-3句话说明为什么这个教练最适合他，并给出一句极具鼓舞性的话。不要使用任何Markdown格式，只输出纯文本。`;
 
   try {
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: prompt,
     });
-    // Property .text is the correct way to access output
-    return response.text;
+    return response.text || "这位教练非常适合你，他能针对你的弱项提供专业指导。";
   } catch (error) {
     console.error("Match advice error:", error);
-    return "这位教练在处理你的弱项方面非常有经验，能帮你快速提升。";
+    return "根据你的目标和弱项，这位教练是目前最能帮你达成突破的人选。";
   }
 }
 
-// Fixed missing function chatWithHeadCoach required by AIChatRoom.tsx
 export async function chatWithHeadCoach(history: any[], message: string) {
-  // Map history to the format expected by the generateContent API
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || "" });
   const contents = [
     ...history,
     { role: 'user', parts: [{ text: message }] }
@@ -37,13 +35,12 @@ export async function chatWithHeadCoach(history: any[], message: string) {
       model: 'gemini-3-flash-preview',
       contents: contents,
       config: {
-        systemInstruction: '你是一位资深的铁人三项总教练，负责解答学员关于训练计划、伤病预防和比赛策略的问题。你的语气专业、严谨且充满热情。',
+        systemInstruction: '你是一位资深的铁人三项总教练，语气专业、严谨且充满热情。',
       },
     });
-    // Property .text is the correct way to access output
-    return response.text;
+    return response.text || "请再说一遍，我没听清。";
   } catch (error) {
     console.error("Chat error:", error);
-    return "抱歉，我的大脑现在有点缺氧，可能是刚练完间歇。请稍后再试。";
+    return "抱歉，由于网络原因，我现在无法提供详细指导。";
   }
 }
