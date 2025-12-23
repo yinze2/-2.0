@@ -3,8 +3,9 @@ import { GoogleGenAI } from "@google/genai";
 import { UserProfile, Coach } from "../types";
 
 export async function getSimpleMatchAdvice(profile: UserProfile, coach: Coach) {
-  // 每次调用时重新实例化以确保获取到最新的 process.env.API_KEY
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || "" });
+  // 确保 API_KEY 存在，即使为空也不要引起程序中断
+  const apiKey = (typeof process !== 'undefined' && process.env?.API_KEY) || "";
+  const ai = new GoogleGenAI({ apiKey });
   
   const prompt = `你是一位专业的铁人三项主教练。
     学员${profile.name}的目标是"${profile.goal}"，目前最薄弱的环节是${profile.weakness}。
@@ -18,13 +19,14 @@ export async function getSimpleMatchAdvice(profile: UserProfile, coach: Coach) {
     });
     return response.text || "这位教练非常适合你，他能针对你的弱项提供专业指导。";
   } catch (error) {
-    console.error("Match advice error:", error);
+    console.warn("Match advice error:", error);
     return "根据你的目标和弱项，这位教练是目前最能帮你达成突破的人选。";
   }
 }
 
 export async function chatWithHeadCoach(history: any[], message: string) {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || "" });
+  const apiKey = (typeof process !== 'undefined' && process.env?.API_KEY) || "";
+  const ai = new GoogleGenAI({ apiKey });
   const contents = [
     ...history,
     { role: 'user', parts: [{ text: message }] }
@@ -40,7 +42,7 @@ export async function chatWithHeadCoach(history: any[], message: string) {
     });
     return response.text || "请再说一遍，我没听清。";
   } catch (error) {
-    console.error("Chat error:", error);
+    console.warn("Chat error:", error);
     return "抱歉，由于网络原因，我现在无法提供详细指导。";
   }
 }
